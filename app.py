@@ -28,8 +28,27 @@ def ocr_from_base64(b64_string: str):
     )
 
     # OCR nhận diện văn bản từ ảnh
-    result = ocr.ocr(thresh, cls=True)
-    logging.debug(f"PaddleOCR raw result: {result}")
+   h,w = img.shape[:2]
+if w < 200:
+    img = cv2.resize(img, (w*2, h*2), interpolation=cv2.INTER_CUBIC)
+
+# 2) Preprocessing
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+gray = cv2.equalizeHist(gray)
+thresh = cv2.adaptiveThreshold(
+    gray, 255,
+    cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    cv2.THRESH_BINARY, 11, 2
+)
+
+# 3) Convert to RGB
+rgb = cv2.cvtColor(thresh, cv2.COLOR_GRAY2RGB)
+
+# 4) Debug save
+cv2.imwrite("/tmp/debug_preprocessed.png", rgb)
+
+# 5) OCR
+result = ocr.ocr(rgb, cls=True)
 
     if not result or not result[0]:
         return ""
