@@ -6,6 +6,9 @@ import pytesseract
 
 app = Flask(__name__)
 
+# Cấu hình đường dẫn Tesseract nếu cần thiết
+pytesseract.pytesseract.tesseract_cmd = "/usr/bin/tesseract"
+
 @app.route("/ocr", methods=["POST"])
 def ocr():
     data = request.json
