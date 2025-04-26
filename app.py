@@ -4,10 +4,14 @@ import numpy as np
 from paddleocr import PaddleOCR
 from flask import Flask, request, jsonify
 from PIL import Image
+import logging
+
+# Bật debug log để hiện lỗi
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 
-# Cấu hình PaddleOCR
+# Load PaddleOCR
 ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False)
 
 def ocr_from_base64(b64_string: str):
@@ -43,6 +47,7 @@ def ocr_api():
         captcha = ocr_from_base64(b64_string)
         return jsonify({"captcha": captcha})
     except Exception as e:
+        app.logger.error(f"Lỗi: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
