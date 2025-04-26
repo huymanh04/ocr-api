@@ -8,8 +8,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 # Khởi tạo PaddleOCR (CPU)
-ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False)
-
+ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False, rec=False)
 def ocr_from_base64(b64_string: str) -> str:
     # Bỏ tiền tố data URI nếu có
     if ',' in b64_string:
@@ -22,10 +21,10 @@ def ocr_from_base64(b64_string: str) -> str:
     if img is None:
         raise ValueError("Không thể giải mã ảnh từ Base64")
     # Chuyển về grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    # (Tuỳ captcha bạn có thể thêm tiền xử lý ở đây: blur, adaptiveThreshold…)
-    # Gọi PaddleOCR
-    result = ocr.ocr(gray, cls=True)
+  gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+gray = cv2.GaussianBlur(gray, (3,3), 0)
+result = ocr.ocr(gray, cls=True)
+
     if not result or not result[0]:
         return ""  # không tìm thấy text
     # result[0] là list [(bbox, (text,score)), ...]
