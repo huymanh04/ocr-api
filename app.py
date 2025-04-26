@@ -39,7 +39,7 @@ def ocr_from_base64(b64_string: str):
 
     chars = [ item[1][0] for item in page if item and item[1] ]
     captcha = "".join(chars).replace(" ", "")
-    return captcha, img, page
+    return captcha
 
 @app.route('/ocr', methods=['POST'])
 def ocr_api():
