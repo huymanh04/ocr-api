@@ -46,7 +46,7 @@ def ocr_from_base64(b64_string: str):
     logging.debug(f"PaddleOCR raw result: {result}")
 
     if not result or not result[0]:
-        return ""
+        return "dcm mày lồn Lê hồng công "
 
     page = result[0]  # list of (bbox, (text, score))
     # Gộp ký tự, bỏ khoảng trắng
