@@ -5,56 +5,54 @@ from paddleocr import PaddleOCR
 from flask import Flask, request, jsonify
 import logging
 
-# Bật debug log để xem trong Render logs
 logging.basicConfig(level=logging.DEBUG)
-
 app = Flask(__name__)
-
-# Khởi tạo PaddleOCR (CPU)
 ocr = PaddleOCR(use_angle_cls=True, lang='en', use_gpu=False)
 
-def ocr_from_base64(b64_string: str) -> str:
-    # Bỏ tiền tố data URI nếu có
+def ocr_from_base64(b64_string: str):
     if ',' in b64_string:
         b64_string = b64_string.split(',', 1)[1]
 
-    # Giải mã Base64
     img_data = base64.b64decode(b64_string)
     nparr = np.frombuffer(img_data, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     if img is None:
         raise ValueError("Không thể giải mã ảnh từ Base64")
 
-    # Thử OCR trực tiếp trên ảnh gốc (BGR)
-gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-gray = cv2.GaussianBlur(gray, (3,3), 0)
-th = cv2.adaptiveThreshold(gray,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                           cv2.THRESH_BINARY,11,2)
-result = ocr.ocr(th, cls=True)
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    _, thresh = cv2.threshold(
+        gray,
+        0,
+        255,
+        cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )
 
-    # Nếu không có kết quả
+    # OCR nhận diện văn bản từ ảnh
+    result = ocr.ocr(thresh, cls=True)
+
     if not result or not result[0]:
-        return "heheh"
+        return "", img, []
 
-    # result[0] là list [(bbox, (text,score)), ...]
     page = result[0]
+    if not page:
+        return "", img, []
 
-    # Gom text, bỏ khoảng trắng
-    chars = [ text for (_, (text, _)) in page ]
-    return "".join(chars).replace(" ", "")
+    chars = [ item[1][0] for item in page if item and item[1] ]
+    captcha = "".join(chars).replace(" ", "")
+    return captcha, img, page
 
 @app.route('/ocr', methods=['POST'])
 def ocr_api():
-    data = request.get_json(silent=True) or {}
-    b64 = data.get("base64", "")
-    if not b64:
-        return jsonify({"error": "Missing base64"}), 400
+    data = request.json or {}
+    b64_string = data.get("base64", "")
+    if not b64_string:
+        return jsonify({"error": "Missing base64 string"}), 400
     try:
-        captcha = ocr_from_base64(b64)
+        captcha, img, page = ocr_from_base64(b64_string)
         return jsonify({"captcha": captcha})
-    except Exception as ex:
-        app.logger.error(f"Lỗi OCR: {ex}")
-        return jsonify({"error": str(ex)}), 500
+    except Exception as e:
+        app.logger.error(f"Lỗi OCR: {e}")
+        return jsonify({"error": str(e)}), 500
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5000)
