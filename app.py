@@ -65,7 +65,8 @@ def ocr_api():
         captcha, debug_img_base64 = ocr_from_base64(b64_string)
         return jsonify({
             "captcha": captcha,
-            "debug_image_base64": "data:image/jpeg;base64," + debug_img_base64
+       "debug_image_base64": "data:image/jpeg;base64," + (debug_img_base64 or "")
+    
         })
     except Exception as e:
         app.logger.error(f"Lỗi OCR: {e}")
