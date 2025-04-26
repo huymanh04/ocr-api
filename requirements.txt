@@ -2,3 +2,7 @@ Flask
 pillow
 pytesseract
 gunicorn
+paddleocr
+numpy
+cv2
+base64
