@@ -1,7 +1,8 @@
 flask
 gunicorn
 paddleocr==2.10.0
-paddlepaddle-cpu==2.4.2
+paddlepaddle==2.4.2
 opencv-python-headless
 pillow
 numpy
+matplotlib
