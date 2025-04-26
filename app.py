@@ -28,12 +28,25 @@ def ocr_from_base64(b64_string: str):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
+   # OCR nhận diện văn bản từ ảnh
     result = ocr.ocr(thresh, cls=True)
-    page = result[0]
 
-    chars = [t[0] for t in page]
+    # Kiểm tra kết quả
+    if not result or result[0] is None:
+        # Không có dòng nào được phát hiện
+        return "", img, []
+
+    page = result[0]  # page là một list các tuple (bbox, (text, score))
+
+    # Nếu page là None hoặc rỗng, trả về chuỗi trống
+    if not page:
+        return "", img, []
+
+    # Gộp các ký tự và bỏ khoảng trắng
+    # chú ý page có dạng [ ( [x1,y1...], (text,score) ), ... ]
+    chars = [ item[1][0] for item in page if item and item[1] and item[1][0] ]
     captcha = "".join(chars).replace(" ", "")
-    return captcha
+    return captcha, img, page
 
 @app.route('/ocr', methods=['POST'])
 def ocr_api():
@@ -44,10 +57,11 @@ def ocr_api():
         return jsonify({"error": "Missing base64 string"}), 400
     
     try:
-        captcha = ocr_from_base64(b64_string)
+        captcha, img, page = ocr_from_base64(b64_string)
+        # Trả về captcha (chuỗi rỗng nếu không nhận diện được)
         return jsonify({"captcha": captcha})
     except Exception as e:
-        app.logger.error(f"Lỗi: {str(e)}")
+        app.logger.error(f"Lỗi OCR: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
