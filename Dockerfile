@@ -1,11 +1,15 @@
-# 1. Sử dụng Python image nhẹ
+# 1. Sử dụng Python slim (nhẹ)
 FROM python:3.10-slim
 
-# 2. Cài đặt PaddleOCR và các thư viện phụ thuộc
+# 2. Cài các gói cần thiết cho PaddleOCR
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
     libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
+    libsm6 \
+    libxrender1 \
+    libxext6 \
+    libgl1-mesa-glx \
+    wget \
+    && apt-get clean
 
 # 3. Đặt thư mục làm việc
 WORKDIR /app
@@ -13,11 +17,11 @@ WORKDIR /app
 # 4. Copy source code vào container
 COPY . .
 
-# 5. Cài thư viện Python từ file requirements.txt
+# 5. Cài thư viện Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 6. Expose cổng server Flask
+# 6. Mở cổng 5000
 EXPOSE 5000
 
-# 7. Lệnh chạy app bằng gunicorn
+# 7. Lệnh khởi động app
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5000"]
