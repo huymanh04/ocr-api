@@ -1,7 +1,7 @@
 import base64
 import cv2
 import numpy as np
-from paddleocr import PaddleOCR
+from paddleocr import PaddleOCR, draw_ocr
 from flask import Flask, request, jsonify
 import logging
 
@@ -21,7 +21,12 @@ def ocr_from_base64(b64_string: str):
         raise ValueError("Không thể giải mã ảnh từ Base64")
 
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _, thresh = cv2.threshold(
+        gray,
+        0,
+        255,
+        cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    )
 
     h, w = thresh.shape[:2]
     if w < 200:
@@ -40,19 +45,16 @@ def ocr_from_base64(b64_string: str):
     txts = [line[1][0] for line in page]
     scores = [line[1][1] for line in page]
 
+    captcha = ''.join(txts).replace(' ', '')
+
     # Vẽ lại ảnh
-    from paddleocr import draw_ocr
-    im_show = draw_ocr(rgb, boxes, txts, scores, font_path='fonts/simfang.ttf')  # nhớ có font
-    im_show = cv2.cvtColor(im_show, cv2.COLOR_RGB2BGR)
+    img_draw = draw_ocr(rgb, boxes, txts, scores, font_path='fonts/simfang.ttf')  # bạn có thể thay font nếu cần
+    img_draw = cv2.cvtColor(img_draw, cv2.COLOR_RGB2BGR)
 
-    # Encode ảnh debug thành base64
-    _, buffer = cv2.imencode('.jpg', im_show)
-    debug_base64 = base64.b64encode(buffer).decode('utf-8')
+    _, buffer = cv2.imencode('.jpg', img_draw)
+    debug_img_base64 = base64.b64encode(buffer).decode('utf-8')
 
-    # Gộp text
-    captcha = "".join(txts).replace(" ", "")
-
-    return captcha, b64_string
+    return captcha, debug_img_base64
 
 @app.route('/ocr', methods=['POST'])
 def ocr_api():
@@ -65,8 +67,7 @@ def ocr_api():
         captcha, debug_img_base64 = ocr_from_base64(b64_string)
         return jsonify({
             "captcha": captcha,
-       "debug_image_base64": "data:image/jpeg;base64," + (debug_img_base64 or "")
-    
+            "debug_image_base64": "data:image/jpeg;base64," + (debug_img_base64 or "")
         })
     except Exception as e:
         app.logger.error(f"Lỗi OCR: {e}")
