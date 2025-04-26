@@ -4,5 +4,5 @@ pytesseract
 gunicorn
 paddleocr
 numpy
-cv2
+opencv-python
 base64
