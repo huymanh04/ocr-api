@@ -1,4 +1,4 @@
-flask
+Flask
 pillow
 pytesseract
 gunicorn
