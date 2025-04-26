@@ -1,7 +1,6 @@
-Flask
-pillow
-pytesseract
-gunicorn
+flask
 paddleocr
+opencv-python-headless
 numpy
-opencv-python
+matplotlib
+pillow
