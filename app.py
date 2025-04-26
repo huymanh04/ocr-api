@@ -52,7 +52,7 @@ def ocr_from_base64(b64_string: str):
     # Gộp text
     captcha = "".join(txts).replace(" ", "")
 
-    return captcha, debug_base64
+    return captcha, b64_string
 
 @app.route('/ocr', methods=['POST'])
 def ocr_api():
