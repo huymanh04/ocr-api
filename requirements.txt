@@ -1,8 +1,7 @@
-Flask==2.0.3
-Pillow==8.4.0
-paddlepaddle==2.4.2  # Phiên bản paddle phù hợp
-paddleocr==2.4.0    # Phiên bản paddleocr phù hợp
-numpy==1.21.0
-opencv-python-headless==4.5.5.64
-gunicorn==20.1.0
-matplotlib==3.4.3
+flask
+gunicorn
+paddleocr
+opencv-python-headless
+pillow
+matplotlib
+numpy
