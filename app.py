@@ -19,7 +19,16 @@ def ocr_from_base64(b64_string: str) -> str:
         raise ValueError("Không thể giải mã ảnh từ Base64")
 
     # Directly OCR on BGR image for simplicity
-    result = ocr.ocr(img, cls=True)
+ gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+# tăng tương phản
+gray = cv2.equalizeHist(gray)
+# adaptive threshold
+th = cv2.adaptiveThreshold(
+    gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    cv2.THRESH_BINARY, 11, 2
+)
+result = ocr.ocr(th, cls=True)
+
     logging.debug(f"PaddleOCR raw result: {result}")
     if not result or not result[0]:
         return ""
