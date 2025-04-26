@@ -1,27 +1,27 @@
-# 1. Sử dụng Python slim (nhẹ)
+# Base Image
 FROM python:3.10-slim
 
-# 2. Cài các gói cần thiết cho PaddleOCR
+# Cài thêm các thư viện hệ thống để paddleocr, opencv chạy được
 RUN apt-get update && apt-get install -y \
+    tesseract-ocr \
+    libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
-    libxrender1 \
     libxext6 \
-    libgl1-mesa-glx \
-    wget \
-    && apt-get clean
+    libxrender1 \
+    && rm -rf /var/lib/apt/lists/*
 
-# 3. Đặt thư mục làm việc
+# Tạo thư mục làm việc
 WORKDIR /app
 
-# 4. Copy source code vào container
+# Copy source code
 COPY . .
 
-# 5. Cài thư viện Python
+# Cài Python package
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 6. Mở cổng 5000
+# Mở port 5000
 EXPOSE 5000
 
-# 7. Lệnh khởi động app
+# Lệnh chạy app
 CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5000"]
